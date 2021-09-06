@@ -2,8 +2,6 @@
 #![no_std]
 
 extern crate alloc;
-use core::convert::TryInto;
-
 use alloc::vec;
 
 use alloc::{collections::BTreeMap, string::String, vec::Vec};
@@ -15,9 +13,8 @@ use casper_contract::{
 use casper_types::{
     api_error::ApiError,
     contracts::{EntryPoint, EntryPointAccess, EntryPointType, EntryPoints},
-    CLType, CLValue, Key, Parameter, URef,
+    CLType, CLTyped, CLValue, Key, Parameter, URef,
 };
-use casper_types::{CLTyped, U128, U512};
 
 const COUNT_KEY: &str = "count";
 const COUNTER_INC: &str = "counter_inc";
@@ -25,13 +22,18 @@ const COUNTER_GET: &str = "counter_get";
 const COUNTER_KEY: &str = "counter";
 
 #[no_mangle]
-pub extern "C" fn counter_inc() {
-    let increment: u64 = runtime::get_named_arg("increment");
+pub extern "C" fn counter_inc(increment: u64) {
+    // pub extern "C" fn counter_inc() {
+    // runtime::put_key("increment", storage::new_uref(increment).into());
+    assert!(increment == 3u64);
+    // runtime::put_key("hello", storage::new_uref(1).into());
     let uref: URef = runtime::get_key(COUNT_KEY)
         .unwrap_or_revert_with(ApiError::MissingKey)
         .into_uref()
         .unwrap_or_revert_with(ApiError::UnexpectedKeyVariant);
-    storage::add(uref, increment);
+    storage::add(uref, 1);
+
+    // assert!(runtime::get_key("hello").is_some());
 }
 
 #[no_mangle]
@@ -40,7 +42,7 @@ pub extern "C" fn counter_get() {
         .unwrap_or_revert_with(ApiError::MissingKey)
         .into_uref()
         .unwrap_or_revert_with(ApiError::UnexpectedKeyVariant);
-    let result: U512 = storage::read(uref)
+    let result: u64 = storage::read(uref)
         .unwrap_or_revert_with(ApiError::Read)
         .unwrap_or_revert_with(ApiError::ValueNotFound);
     let typed_result = CLValue::from_t(result).unwrap_or_revert();
@@ -68,7 +70,7 @@ pub extern "C" fn call() {
     counter_entry_points.add_entry_point(EntryPoint::new(
         COUNTER_GET,
         Vec::new(),
-        CLType::U512,
+        CLType::U64,
         EntryPointAccess::Public,
         EntryPointType::Contract,
     ));

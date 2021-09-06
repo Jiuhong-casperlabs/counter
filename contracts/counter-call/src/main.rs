@@ -2,9 +2,14 @@
 
 extern crate alloc;
 
-use casper_types::{runtime_args::RuntimeArgs, ApiError, ContractHash, Key};
+use casper_types::{
+    bytesrepr::ToBytes, runtime_args, runtime_args::RuntimeArgs, ApiError, ContractHash, Key,
+};
 
-use casper_contract::{contract_api::runtime, unwrap_or_revert::UnwrapOrRevert};
+use casper_contract::{
+    contract_api::{runtime, storage},
+    unwrap_or_revert::UnwrapOrRevert,
+};
 
 const COUNTER_KEY: &str = "counter";
 const COUNTER_INC: &str = "counter_inc";
@@ -22,19 +27,25 @@ pub extern "C" fn call() {
         }
     };
 
-    // Call Counter to get the current value.
-    let current_counter_value: u32 =
-        runtime::call_contract(contract_hash, COUNTER_GET, RuntimeArgs::new());
+    // let mut inc_value = RuntimeArgs::new();
+    // let _ = inc_value.insert("increment", 3u32).unwrap_or_revert();
 
+    // Call Counter to get the current value.
+    // let current_counter_value: i32 =
+    //     runtime::call_contract(contract_hash, COUNTER_GET, RuntimeArgs::new());
+
+    let args = runtime_args! {
+        "increment" => 3u64,
+    };
     // Call Counter to increment the value.
-    let _: () = runtime::call_contract(contract_hash, COUNTER_INC, RuntimeArgs::new());
+    let _: () = runtime::call_contract(contract_hash, COUNTER_INC, args);
 
     // Call Counter to get the new value.
-    let new_counter_value: u32 =
-        runtime::call_contract(contract_hash, COUNTER_GET, RuntimeArgs::new());
+    // let new_counter_value: i32 =
+    //     runtime::call_contract(contract_hash, COUNTER_GET, RuntimeArgs::new());
 
     // Expect counter to increment by one.
-    if new_counter_value - current_counter_value != 1u32 {
-        runtime::revert(ApiError::User(67));
-    }
+    // if new_counter_value - current_counter_value != 3i32 {
+    //     runtime::revert(ApiError::User(67));
+    // }
 }

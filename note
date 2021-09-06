@@ -1,0 +1,15 @@
+casper-client put-deploy --chain-name casper-test \
+--node-address http://16.162.124.124:7777 \
+--secret-key /home/jiuhong/my-project/keys/test12/secret_key.pem \
+--session-path /home/jiuhong/counter/target/wasm32-unknown-unknown/release/counter-define.wasm   \
+--payment-amount 40000000000
+
+
+counter-call.wasm
+counter-define.wasm
+
+casper-client put-deploy --chain-name casper-test \
+--node-address http://16.162.124.124:7777 \
+--secret-key /home/jiuhong/my-project/keys/test12/secret_key.pem \
+--session-path /home/jiuhong/counter/target/wasm32-unknown-unknown/release/counter-call.wasm   \
+--payment-amount 1000000000
