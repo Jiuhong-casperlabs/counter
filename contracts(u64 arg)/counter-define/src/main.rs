@@ -36,9 +36,13 @@ const CONTRACT_PACKAGE_HASH_NAME: &str = "package_hash_name";
 
 #[no_mangle]
 pub extern "C" fn counter_inc() {
-    let value: String = runtime::get_named_arg("hello");
-
-    runtime::put_key("gethello", storage::new_uref(value).into());
+    let increment: u64 = runtime::get_named_arg("increment");
+    // let increment = i32::from_str(&increment_str).unwrap();
+    let uref: URef = runtime::get_key(COUNT_KEY)
+        .unwrap_or_revert_with(ApiError::MissingKey)
+        .into_uref()
+        .unwrap_or_revert_with(ApiError::UnexpectedKeyVariant);
+    storage::add(uref, increment);
 }
 
 #[no_mangle]
@@ -55,7 +59,7 @@ pub extern "C" fn call() {
     let mut counter_entry_points = EntryPoints::new();
     counter_entry_points.add_entry_point(EntryPoint::new(
         COUNTER_INC,
-        vec![Parameter::new("hello", CLType::String)],
+        vec![Parameter::new("increment", CLType::U64)],
         CLType::Unit,
         EntryPointAccess::Public,
         EntryPointType::Contract,

@@ -29,7 +29,7 @@ pub extern "C" fn call() {
 
     let mut test = RuntimeArgs::new();
 
-    let _ = test.insert("hello", "world");
+    let _ = test.insert("increment", 123 as u64);
 
     // Call Counter to increment the value.
     let _: () = runtime::call_contract(contract_hash, COUNTER_INC, test);

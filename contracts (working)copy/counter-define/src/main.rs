@@ -3,9 +3,7 @@
 
 extern crate alloc;
 use core::convert::TryInto;
-use core::str::FromStr;
 
-use alloc::string::ToString;
 use alloc::vec;
 
 use alloc::{collections::BTreeMap, string::String, vec::Vec};
@@ -14,34 +12,41 @@ use casper_contract::{
     unwrap_or_revert::UnwrapOrRevert,
 };
 
-use casper_types::contracts::NamedKeys;
 use casper_types::{
     api_error::ApiError,
     contracts::{EntryPoint, EntryPointAccess, EntryPointType, EntryPoints},
     CLType, CLValue, Key, Parameter, URef,
 };
-use casper_types::{AccessRights, CLTyped, U128, U256, U512};
+use casper_types::{CLTyped, U128, U512};
 
 const COUNT_KEY: &str = "count";
 const COUNTER_INC: &str = "counter_inc";
-
+const COUNTER_GET: &str = "counter_get";
 const COUNTER_KEY: &str = "counter";
-
-pub const DICTIONARY_NAME: &str = "local";
-pub const DICTIONARY_REF: &str = "new_dictionary";
-pub const DEFAULT_DICTIONARY_NAME: &str = "sun";
-pub const DEFAULT_DICTIONARY_VALUE: &str = "jiuhong";
-pub const GET_RESULT: &str = "getdicresult";
-const CONTRACT_PACKAGE_HASH_NAME: &str = "package_hash_name";
 
 #[no_mangle]
 pub extern "C" fn counter_inc() {
-    let value: String = runtime::get_named_arg("hello");
-
-    runtime::put_key("gethello", storage::new_uref(value).into());
+    let increment: u64 = runtime::get_named_arg("increment");
+    let uref: URef = runtime::get_key(COUNT_KEY)
+        .unwrap_or_revert_with(ApiError::MissingKey)
+        .into_uref()
+        .unwrap_or_revert_with(ApiError::UnexpectedKeyVariant);
+    storage::add(uref, increment);
 }
 
 #[no_mangle]
+pub extern "C" fn counter_get() {
+    let uref: URef = runtime::get_key(COUNT_KEY)
+        .unwrap_or_revert_with(ApiError::MissingKey)
+        .into_uref()
+        .unwrap_or_revert_with(ApiError::UnexpectedKeyVariant);
+    let result: U512 = storage::read(uref)
+        .unwrap_or_revert_with(ApiError::Read)
+        .unwrap_or_revert_with(ApiError::ValueNotFound);
+    let typed_result = CLValue::from_t(result).unwrap_or_revert();
+    runtime::ret(typed_result);
+}
+
 #[no_mangle]
 pub extern "C" fn call() {
     let counter_local_key = storage::new_uref(0); //initialize counter
@@ -55,8 +60,15 @@ pub extern "C" fn call() {
     let mut counter_entry_points = EntryPoints::new();
     counter_entry_points.add_entry_point(EntryPoint::new(
         COUNTER_INC,
-        vec![Parameter::new("hello", CLType::String)],
+        vec![Parameter::new("increment", u64::cl_type())],
         CLType::Unit,
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
+    counter_entry_points.add_entry_point(EntryPoint::new(
+        COUNTER_GET,
+        Vec::new(),
+        CLType::U512,
         EntryPointAccess::Public,
         EntryPointType::Contract,
     ));

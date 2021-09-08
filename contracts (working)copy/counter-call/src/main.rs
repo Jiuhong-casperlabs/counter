@@ -27,10 +27,25 @@ pub extern "C" fn call() {
         }
     };
 
-    let mut test = RuntimeArgs::new();
+    // let mut inc_value = RuntimeArgs::new();
+    // let _ = inc_value.insert("increment", 3u32).unwrap_or_revert();
 
-    let _ = test.insert("hello", "world");
+    // Call Counter to get the current value.
+    // let current_counter_value: i32 =
+    //     runtime::call_contract(contract_hash, COUNTER_GET, RuntimeArgs::new());
 
+    let args = runtime_args! {
+        "increment" => 3u64,
+    };
     // Call Counter to increment the value.
-    let _: () = runtime::call_contract(contract_hash, COUNTER_INC, test);
+    let _: () = runtime::call_contract(contract_hash, COUNTER_INC, args);
+
+    // Call Counter to get the new value.
+    // let new_counter_value: i32 =
+    //     runtime::call_contract(contract_hash, COUNTER_GET, RuntimeArgs::new());
+
+    // Expect counter to increment by one.
+    // if new_counter_value - current_counter_value != 3i32 {
+    //     runtime::revert(ApiError::User(67));
+    // }
 }
