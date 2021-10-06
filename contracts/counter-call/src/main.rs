@@ -3,7 +3,7 @@
 extern crate alloc;
 
 use casper_types::{
-    bytesrepr::ToBytes, runtime_args, runtime_args::RuntimeArgs, ApiError, ContractHash, Key,
+    bytesrepr::ToBytes, runtime_args, runtime_args::RuntimeArgs, ApiError, ContractHash, Key, U256,
 };
 
 use casper_contract::{
@@ -29,7 +29,15 @@ pub extern "C" fn call() {
 
     let mut test = RuntimeArgs::new();
 
-    let _ = test.insert("hello", "world");
+    let mut vec = Vec::new();
+    let value1 = U256::from_dec_str("1").unwrap();
+    let value2 = U256::from_dec_str("2").unwrap();
+    let value3 = U256::from_dec_str("3").unwrap();
+    vec.push(value1);
+    vec.push(value2);
+    vec.push(value3);
+
+    let _ = test.insert("hello", vec);
 
     // Call Counter to increment the value.
     let _: () = runtime::call_contract(contract_hash, COUNTER_INC, test);

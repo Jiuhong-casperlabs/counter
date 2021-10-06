@@ -5,6 +5,7 @@ extern crate alloc;
 use core::convert::TryInto;
 use core::str::FromStr;
 
+use alloc::boxed::Box;
 use alloc::string::ToString;
 use alloc::vec;
 
@@ -36,7 +37,7 @@ const CONTRACT_PACKAGE_HASH_NAME: &str = "package_hash_name";
 
 #[no_mangle]
 pub extern "C" fn counter_inc() {
-    let value: String = runtime::get_named_arg("hello");
+    let value: Vec<U256> = runtime::get_named_arg("hello");
 
     runtime::put_key("gethello", storage::new_uref(value).into());
 }
@@ -55,7 +56,10 @@ pub extern "C" fn call() {
     let mut counter_entry_points = EntryPoints::new();
     counter_entry_points.add_entry_point(EntryPoint::new(
         COUNTER_INC,
-        vec![Parameter::new("hello", CLType::String)],
+        vec![Parameter::new(
+            "hello",
+            CLType::List(Box::new(U256::cl_type())),
+        )],
         CLType::Unit,
         EntryPointAccess::Public,
         EntryPointType::Contract,
